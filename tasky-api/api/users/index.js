@@ -12,12 +12,31 @@ router.get('/', async (req, res) => {
 // register(Create)/Authenticate User
 router.post('/', async (req, res) => {
     if (req.query.action === 'register') {  //if action is 'register' then save to DB
+
+        const { username, password } = req.body;
+        
+        if (!username || !password) {
+            return res.status(400).json({
+                code: 400,
+                msg: 'Validation failed. Username and password are required.',
+            });
+        }
+
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        code: 400,
+        msg: 'Password must be at least 8 characters long and contain at least one letter, one digit, and one special character.',
+      });
+    }
+        
         await User(req.body).save();
         res.status(201).json({
             code: 201,
             msg: 'Successful created new user.',
         });
     }
+
     else {  //Must be an authenticate then!!! Query the DB and check if there's a match
         const user = await User.findOne(req.body);
         if (!user) {
